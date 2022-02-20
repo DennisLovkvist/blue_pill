@@ -14,40 +14,32 @@
 #define SCREEN_HEIGHT 1080
 #define SYMBOL_WIDTH 16
 #define SYMBOL_HEIGHT 16
+#define GLYPH_WIDTH 12
+
 const int SYMBOLS_X_AXIS = SCREEN_WIDTH / SYMBOL_WIDTH;
 const int SYMBOLS_Y_AXIS = SCREEN_HEIGHT / SYMBOL_HEIGHT;
 const int SYMBOL_COUNT = SYMBOLS_X_AXIS*(SYMBOLS_Y_AXIS+1);
 
-int main()
+
+
+void BuildGlyphMap(sf::RenderTexture *glyph_map)
 {
-   sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH,SCREEN_HEIGHT), "SFML works!", sf::Style::Close);
-
-	sf::View view = window.getDefaultView();
-	sf::Clock clock;
-	float dt = 1.f / 60.f;
-	float accumulator = 0.f;
-	float t = 0;
-
-
     sf::Font font;
     if (!font.loadFromFile("content/arial.ttf"))
     {
-        window.close();
         std::cout << "Cannot find font at " << ("content/matrix.ttf") << std::endl << "Press [ENTER] to exit." << std::endl;
         std::cin.ignore(); 
-        return 0;
     }
-    int glyph_width = 12;
-    sf::RenderTexture glyph_map;
-    glyph_map.create(1332, 18);
+    
+    glyph_map->create(1332, 18);
 
     sf::Text characters;
     characters.setLetterSpacing(10);
     characters.setFont(font);
-    char c[63] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    
+    char c[63] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";   
 
-	glyph_map.clear(sf::Color(255,255,255,0));
+	glyph_map->clear(sf::Color(255,255,255,0));
+
     for (size_t i = 0; i < 62; i++)
     {
         characters.setString(c[i]);
@@ -59,52 +51,70 @@ int main()
         characters.setScale(1.0, -1.0);
         characters.setOrigin(0,18);
 
-        int x = (glyph_width/2)-(width/2);
+        int x = (GLYPH_WIDTH/2)-(width/2);
 
-        characters.setPosition((glyph_width*i+x),0);
-        glyph_map.draw(characters);
+        characters.setPosition((GLYPH_WIDTH*i+x),0);
+        glyph_map->draw(characters);
     }
-    
+}
 
-    
 
-    sf::Sprite glyph_map_sprite;
-    glyph_map_sprite.setTexture(glyph_map.getTexture());
-    
-    window.draw(glyph_map_sprite);
+int main()
+{
+   sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH,SCREEN_HEIGHT), "SFML works!", sf::Style::Close);
+
+	sf::View view = window.getDefaultView();
+	sf::Clock clock;
+	float dt = 1.f / 60.f;
+	float accumulator = 0.f;
+	float t = 0;
+
+    sf::RenderTexture glyph_map;
+    BuildGlyphMap(&glyph_map);  
 
     float *speed = new float[SYMBOLS_X_AXIS];
 
     int *focus_index = new int[SYMBOLS_X_AXIS];
 
-    sf::VertexArray* va = new sf::VertexArray(sf::PrimitiveType::Quads,SYMBOL_COUNT*4);
+    sf::VertexArray* vertices = new sf::VertexArray(sf::PrimitiveType::Quads,SYMBOL_COUNT*4);
 
     for (int i = 0; i < SYMBOL_COUNT; i++)
     {
         int index = i * 4;   
         int x = (i % SYMBOLS_X_AXIS)*SYMBOL_WIDTH;   
-        int y = (i / SYMBOLS_X_AXIS)*SYMBOL_HEIGHT;    
-
+        int y = (i / SYMBOLS_X_AXIS)*SYMBOL_HEIGHT;  
         
-        std::cout << x << "," << y << std::endl; 
+        sf::Vertex* vertex_0 = &(*vertices)[index];
+        sf::Vertex* vertex_1 = &(*vertices)[index+1];
+        sf::Vertex* vertex_2 = &(*vertices)[index+2];
+        sf::Vertex* vertex_3 = &(*vertices)[index+3];
 
-        (*va)[index].position = sf::Vector2f(x,y);    
-        (*va)[index+1].position = sf::Vector2f(x+glyph_width,y);
-        (*va)[index+2].position = sf::Vector2f(x+glyph_width,y+SYMBOL_WIDTH);
-        (*va)[index+3].position = sf::Vector2f(x,y+SYMBOL_WIDTH);
+        vertex_0->position.x = x;
+        vertex_0->position.y = y; 
 
+        vertex_1->position.x = x+GLYPH_WIDTH;
+        vertex_1->position.y = y;
 
-        int offset_x = 1 + rand() % (( 62 + 1 ) - 1)*glyph_width;
-        (*va)[index].texCoords = sf::Vector2f(offset_x,0);
-        (*va)[index+1].texCoords = sf::Vector2f(offset_x+glyph_width,0);
-        (*va)[index+2].texCoords = sf::Vector2f(offset_x+glyph_width,SYMBOL_HEIGHT);
-        (*va)[index+3].texCoords = sf::Vector2f(offset_x,SYMBOL_HEIGHT);
+        vertex_2->position.x = x+GLYPH_WIDTH;
+        vertex_2->position.y = y+SYMBOL_WIDTH;
 
-        
+        vertex_3->position.x = x;
+        vertex_3->position.y = y+SYMBOL_WIDTH;
 
-        
+        int offset_x = 1 + rand() % (( 62 + 1 ) - 1)*GLYPH_WIDTH;
+
+        vertex_0->texCoords.x = offset_x;
+        vertex_0->texCoords.y = 0;
+
+        vertex_1->texCoords.x = offset_x+GLYPH_WIDTH;
+        vertex_1->texCoords.y = 0;
+
+        vertex_2->texCoords.x = offset_x+GLYPH_WIDTH,SYMBOL_HEIGHT;
+        vertex_2->texCoords.y = SYMBOL_HEIGHT;
+
+        vertex_3->texCoords.x = offset_x;
+        vertex_3->texCoords.y = SYMBOL_HEIGHT;          
     }
-
 
     for (size_t i = 0; i < SYMBOLS_X_AXIS; i++)
     {
@@ -112,14 +122,14 @@ int main()
 
         speed[i] = (float)(15 + rand() % (( 20 + 15 ) - 1))/10.0f;
         
-    }
+    }  
     
-    
-    
-    
-
-
-    
+    sf::VertexArray fade = sf::VertexArray(sf::PrimitiveType::Quads,4);
+    fade[0].position = sf::Vector2f(0,0);
+    fade[1].position = sf::Vector2f(SCREEN_WIDTH,0);
+    fade[2].position = sf::Vector2f(SCREEN_WIDTH,SCREEN_HEIGHT);
+    fade[3].position = sf::Vector2f(0,SCREEN_HEIGHT);
+    fade[0].color = fade[1].color = fade[2].color = fade[3].color = sf::Color(0,0,0,50);    
 
     sf::RenderStates rs;
     rs.texture = &glyph_map.getTexture();
@@ -133,24 +143,6 @@ int main()
 			{
 				window.close();
 			}
-			if(event.type == sf::Event::KeyPressed)
-			{
-                if(event.key.code == sf::Keyboard::Escape)
-                {
-                    window.close();
-                }
-				if(event.key.code == sf::Keyboard::W)
-                {
-
-                }
-			}
-			if(event.type == sf::Event::KeyReleased)
-			{
-				if(event.key.code == sf::Keyboard::A)
-                {
-					
-                }
-			}
 		}
 		while (accumulator >= dt)
 		{
@@ -162,85 +154,90 @@ int main()
                 int x = (i % SYMBOLS_X_AXIS)*SYMBOL_WIDTH;   
                 int y = (i / SYMBOLS_X_AXIS)*SYMBOL_HEIGHT;  
 
-                if((*va)[index+1].position.y > SCREEN_HEIGHT)
+                sf::Vertex* vertex_0 = &(*vertices)[index];
+                sf::Vertex* vertex_1 = &(*vertices)[index+1];
+                sf::Vertex* vertex_2 = &(*vertices)[index+2];
+                sf::Vertex* vertex_3 = &(*vertices)[index+3];
+
+                if(vertex_0->position.y > SCREEN_HEIGHT)
                 {                    
                     int y = -8;
-                    (*va)[index].position.y = y;    
-                    (*va)[index+1].position.y = y;
-                    (*va)[index+2].position.y = y+16;
-                    (*va)[index+3].position.y=y+16;
+                    vertex_0->position.y = y;    
+                    vertex_1->position.y = y;
+                    vertex_2->position.y = y + 16;
+                    vertex_3->position.y = y + 16;
 
+                    int offset_x = 1 + rand() % (( 63 + 1 ) - 1) * GLYPH_WIDTH;
+                    vertex_0->texCoords.x = offset_x;
+                    vertex_0->texCoords.y = 0;
 
-                    int offset_x = 1 + rand() % (( 63 + 1 ) - 1)*glyph_width;
-                    (*va)[index].texCoords = sf::Vector2f(offset_x,0);
-                    (*va)[index+1].texCoords = sf::Vector2f(offset_x+glyph_width,0);
-                    (*va)[index+2].texCoords = sf::Vector2f(offset_x+glyph_width,16);
-                    (*va)[index+3].texCoords = sf::Vector2f(offset_x,16);
+                    vertex_1->texCoords.x = offset_x + GLYPH_WIDTH;
+                    vertex_1->texCoords.y = 0;
 
+                    vertex_2->texCoords.x = offset_x + GLYPH_WIDTH;
+                    vertex_2->texCoords.y = 16;
+
+                    vertex_3->texCoords.x = offset_x;
+                    vertex_3->texCoords.y = 16;
                 }
                 else
-                {
-                    
+                {                    
                     float s = speed[(i % SYMBOLS_X_AXIS)];
-                    (*va)[index].position.y += s;    
-                    (*va)[index+1].position.y += s;    
-                    (*va)[index+2].position.y += s;    
-                    (*va)[index+3].position.y += s; 
+                    vertex_0->position.y += s;    
+                    vertex_1->position.y += s;    
+                    vertex_2->position.y += s;    
+                    vertex_3->position.y += s;   
 
-                    int lol = (*va)[index].position.y;
-                    
+                    int n = (1 + rand() % (( 16 + 1 ) - 1));                    
+                    int symbol_position_y = vertex_0->position.y;
 
-                    int pung = (1 + rand() % (( 16 + 1 ) - 1));
+                    if(symbol_position_y % n == 0)
+                    {      
+                        sf::Color* color_0 = &(vertex_0->color);
+                        sf::Color* color_1 = &(vertex_1->color);
+                        sf::Color* color_2 = &(vertex_2->color);
+                        sf::Color* color_3 = &(vertex_3->color);  
 
-                    if(lol % pung == 0)
-                    {                            
-                        (*va)[index].color.g = (*va)[index+1].color.g = (*va)[index+2].color.g = (*va)[index+3].color.g = (*va)[index].color.g = 1 + rand() % (( 255 + 1 ) - 1);
-                        (*va)[index].color.r = (*va)[index+1].color.r = (*va)[index+2].color.r = (*va)[index+3].color.r = (*va)[index].color.g = 1 + rand() % (( 50 + 1 ) - 1);
-                        (*va)[index].color.b = (*va)[index+1].color.b = (*va)[index+2].color.b = (*va)[index+3].color.b = (*va)[index].color.g = 1 + rand() % (( 50 + 1 ) - 1);
+                        color_0->r = color_1->r = color_2->r = color_3->r = 1 + rand() % (( 50 + 1 ) - 1);
+                        color_0->g = color_1->g = color_2->g = color_3->g = 1 + rand() % (( 200 + 1 ) - 1);
+                        color_0->b = color_1->b = color_2->b = color_3->b = 1 + rand() % (( 50 + 1 ) - 1);
 
+                        int offset_x = 1 + rand() % (( 63 + 1 ) - 1)*GLYPH_WIDTH;
+                        vertex_0->texCoords.x = offset_x;
+                        vertex_0->texCoords.y = 0;
 
-                        int offset_x = 1 + rand() % (( 63 + 1 ) - 1)*glyph_width;
-                        (*va)[index].texCoords = sf::Vector2f(offset_x,0);
-                        (*va)[index+1].texCoords = sf::Vector2f(offset_x+glyph_width,0);
-                        (*va)[index+2].texCoords = sf::Vector2f(offset_x+glyph_width,16);
-                        (*va)[index+3].texCoords = sf::Vector2f(offset_x,16);
+                        vertex_1->texCoords.x = offset_x+GLYPH_WIDTH;
+                        vertex_1->texCoords.y = 0;
+
+                        vertex_2->texCoords.x = offset_x+GLYPH_WIDTH;
+                        vertex_2->texCoords.y = 16;
+
+                        vertex_3->texCoords.x = offset_x;
+                        vertex_3->texCoords.y = 16;
                     }
-
                 }
-                
-            }
-			
-
-
-
+            }	
             for (size_t x = 0; x < SYMBOLS_X_AXIS; x++)
             {
                 int index = (x + SYMBOLS_X_AXIS*focus_index[x])*4;
 
-                (*va)[index].color.r = (*va)[index].color.g = (*va)[index].color.b = 255;
-                (*va)[index+1].color.r = (*va)[index+1].color.g = (*va)[index+1].color.b = 255;
-                (*va)[index+2].color.r = (*va)[index+2].color.g = (*va)[index+2].color.b = 255;
-                (*va)[index+3].color.r = (*va)[index+3].color.g = (*va)[index+3].color.b = 255;
+                sf::Color* color_0 = &(*vertices)[index].color;
+                sf::Color* color_1 = &(*vertices)[index+1].color;
+                sf::Color* color_2 = &(*vertices)[index+2].color;
+                sf::Color* color_3 = &(*vertices)[index+3].color;
+
+                color_0->r = color_1->r = color_2->r = color_3->r = 255;
+                color_0->g = color_1->g = color_2->g = color_3->g = 255;
+                color_0->b = color_1->b = color_2->b = color_3->b = 255;
             }
-            
-
-
-			float time_step = 1.0f / 60.0f;
-            //window.clear(sf::Color(40,40,40));
-            
-            sf::VertexArray lol = sf::VertexArray(sf::PrimitiveType::Quads,4);
-
-            lol[0].position = sf::Vector2f(0,0);
-            lol[1].position = sf::Vector2f(SCREEN_WIDTH,0);
-            lol[2].position = sf::Vector2f(SCREEN_WIDTH,SCREEN_HEIGHT);
-            lol[3].position = sf::Vector2f(0,SCREEN_HEIGHT);
-
-            lol[0].color = lol[1].color = lol[2].color = lol[3].color = sf::Color(0,0,0,50);
-            window.draw(lol);
-            window.draw(*va,&glyph_map.getTexture());
+           
+            window.draw(fade);
+            window.draw(*vertices,&glyph_map.getTexture());
 			window.display();
+
 			accumulator -= dt;
 		};
+        
 		accumulator += clock.getElapsedTime().asSeconds();
 
 		clock.restart();		
