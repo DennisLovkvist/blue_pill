@@ -16,16 +16,16 @@
 #define SYMBOL_HEIGHT 16
 #define GLYPH_WIDTH 12
 
+#define PI 3.141
+
 const int SYMBOLS_X_AXIS = SCREEN_WIDTH / SYMBOL_WIDTH;
 const int SYMBOLS_Y_AXIS = SCREEN_HEIGHT / SYMBOL_HEIGHT;
 const int SYMBOL_COUNT = SYMBOLS_X_AXIS*(SYMBOLS_Y_AXIS+1);
 
-
-
 void BuildGlyphMap(sf::RenderTexture *glyph_map)
 {
     sf::Font font;
-    if (!font.loadFromFile("content/arial.ttf"))
+    if (!font.loadFromFile("content/matrix.ttf"))
     {
         std::cout << "Cannot find font at " << ("content/matrix.ttf") << std::endl << "Press [ENTER] to exit." << std::endl;
         std::cin.ignore(); 
@@ -40,7 +40,7 @@ void BuildGlyphMap(sf::RenderTexture *glyph_map)
 
 	glyph_map->clear(sf::Color(255,255,255,0));
 
-    for (size_t i = 0; i < 62; i++)
+    for (size_t i = 0; i < 63; i++)
     {
         characters.setString(c[i]);
         characters.setCharacterSize(16); 
@@ -58,7 +58,178 @@ void BuildGlyphMap(sf::RenderTexture *glyph_map)
     }
 }
 
+void GenerateRoundedEdge(sf::VertexArray* vertices,int x,int y,float r,int radius, int triangle_count,int vertex_count,sf::Color distortion_color)
+{
+    float step = (PI/2)/(triangle_count);
 
+    for (size_t i = 0; i < vertex_count; i++)
+    {
+        sf::Vector2f* vertex_position = &(*vertices)[i].position;
+        sf::Color* color = &(*vertices)[i].color;
+        if(i%3 == 0)
+        {
+            vertex_position->x = x;
+            vertex_position->y = y;  
+            *color = sf::Color::Black;          
+        }
+        else if(i%3 == 1)
+        {
+            vertex_position->x = x+std::cos(r)*radius;
+            vertex_position->y = y+std::sin(r)*radius; 
+            *color = distortion_color;           
+        }
+        else if(i%3 == 2)
+        {
+            r+= step;
+            vertex_position->x = x+std::cos(r)*radius;
+            vertex_position->y = y+std::sin(r)*radius;
+            *color = distortion_color;  
+            
+        }     
+    }
+}
+void GenerateBlocks(sf::VertexArray* vertices,int inner_x, int inner_y,int radius)
+{
+    sf::Color color_low = sf::Color::Red;
+    sf::Color color_high = sf::Color::Black;
+
+    sf::Vector2f* vertex_position = &(*vertices)[0].position;
+    sf::Color* color = &(*vertices)[0].color;
+    
+    //Middle rectangle
+    vertex_position->x = inner_x;
+    vertex_position->y = inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[1].position;
+    color = &(*vertices)[1].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[2].position;
+    color = &(*vertices)[2].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[3].position;
+    color = &(*vertices)[3].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;  
+    *color = color_high;    
+
+
+    //Left rectangle
+    color_low = sf::Color::Red;
+    vertex_position = &(*vertices)[4].position;
+    color = &(*vertices)[4].color;
+    vertex_position->x = inner_x-radius;
+    vertex_position->y = inner_y;
+    *color = color_low;
+
+    vertex_position = &(*vertices)[5].position;
+    color = &(*vertices)[5].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[6].position;
+    color = &(*vertices)[6].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[7].position;
+    color = &(*vertices)[7].color;
+    vertex_position->x = inner_x-radius;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = color_low;
+
+    //Right rectangle
+    color_low = sf::Color::Blue;
+    vertex_position = &(*vertices)[8].position;
+    color = &(*vertices)[8].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = inner_y;
+    *color = color_high;
+
+    vertex_position = &(*vertices)[9].position;
+    color = &(*vertices)[9].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x+radius;
+    vertex_position->y = inner_y;
+    *color = color_low;
+
+    vertex_position = &(*vertices)[10].position;
+    color = &(*vertices)[10].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x+radius;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = color_low;
+
+    vertex_position = &(*vertices)[11].position;
+    color = &(*vertices)[11].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = color_high;
+
+
+
+    //Bottom rectangle
+    vertex_position = &(*vertices)[12].position;
+    color = &(*vertices)[12].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = inner_y;
+    *color = sf::Color::Black;
+
+    vertex_position = &(*vertices)[13].position;
+    color = &(*vertices)[13].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = inner_y;
+    *color = sf::Color::Black;
+
+    vertex_position = &(*vertices)[14].position;
+    color = &(*vertices)[14].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = inner_y-radius;
+    *color = sf::Color::Blue;
+
+    vertex_position = &(*vertices)[15].position;
+    color = &(*vertices)[15].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = inner_y-radius;
+    *color = sf::Color::Red;
+
+
+
+    
+    //Top rectangle
+    vertex_position = &(*vertices)[16].position;
+    color = &(*vertices)[16].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = sf::Color::Black;
+
+    vertex_position = &(*vertices)[17].position;
+    color = &(*vertices)[17].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y;
+    *color = sf::Color::Black;
+
+    vertex_position = &(*vertices)[18].position;
+    color = &(*vertices)[18].color;
+    vertex_position->x = SCREEN_WIDTH - inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y+radius;
+    *color = sf::Color::Blue;
+
+    vertex_position = &(*vertices)[19].position;
+    color = &(*vertices)[19].color;
+    vertex_position->x = inner_x;
+    vertex_position->y = SCREEN_HEIGHT - inner_y+radius;
+    *color = sf::Color::Red;
+
+    
+
+}
 int main()
 {
    sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH,SCREEN_HEIGHT), "SFML works!", sf::Style::Close);
@@ -71,6 +242,98 @@ int main()
 
     sf::RenderTexture glyph_map;
     BuildGlyphMap(&glyph_map);  
+
+
+    sf::RenderTexture distortion_map;
+    distortion_map.create(SCREEN_WIDTH,SCREEN_HEIGHT);
+
+    sf::Sprite distortion_map_sprite;
+    distortion_map_sprite.setTexture(distortion_map.getTexture());
+
+    int inner_x = 50;
+    int inner_y = 50;
+    int radius = 60;
+    int triangle_count = 10;
+    int vertex_count = 3*triangle_count;
+    sf::VertexArray shape = sf::VertexArray(sf::PrimitiveType::Triangles,3*vertex_count);
+
+    sf::VertexArray blocks = sf::VertexArray(sf::PrimitiveType::Quads,4*5);
+
+    GenerateBlocks(&blocks,inner_x,inner_y,radius);
+
+    sf::VertexArray side = sf::VertexArray(sf::PrimitiveType::Quads,4);  
+    side[0].position.x = 0;
+    side[0].position.y = 0;
+    side[1].position.x = SCREEN_WIDTH/2;
+    side[1].position.y = 0;
+    side[2].position.x = SCREEN_WIDTH/2;
+    side[2].position.y = SCREEN_HEIGHT;
+    side[3].position.x = 0;
+    side[3].position.y = SCREEN_HEIGHT;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        side[i].color = sf::Color::Red;
+    }
+    
+
+    distortion_map.draw(side);
+
+    side[0].position.x = SCREEN_WIDTH/2;
+    side[0].position.y = 0;
+    side[1].position.x = SCREEN_WIDTH;
+    side[1].position.y = 0;
+    side[2].position.x = SCREEN_WIDTH;
+    side[2].position.y = SCREEN_HEIGHT;
+    side[3].position.x = SCREEN_WIDTH/2;
+    side[3].position.y = SCREEN_HEIGHT;
+
+    for (size_t i = 0; i < 4; i++)
+    {
+        side[i].color = sf::Color::Blue;
+    }
+
+    distortion_map.draw(side);
+
+
+    distortion_map.draw(blocks);
+
+    GenerateRoundedEdge(&shape,inner_x,SCREEN_HEIGHT-inner_y,PI/2,radius,triangle_count,vertex_count,sf::Color::Red);   
+    distortion_map.draw(shape);
+
+    GenerateRoundedEdge(&shape,SCREEN_WIDTH - inner_x,SCREEN_HEIGHT-inner_y,0.0f,radius,triangle_count,vertex_count,sf::Color::Blue);   
+    distortion_map.draw(shape);
+
+    GenerateRoundedEdge(&shape,inner_x,inner_y,PI,radius,triangle_count,vertex_count,sf::Color::Red);   
+    distortion_map.draw(shape);
+
+    GenerateRoundedEdge(&shape,SCREEN_WIDTH-inner_x,inner_y,-PI/2,radius,triangle_count,vertex_count,sf::Color::Blue);   
+    distortion_map.draw(shape);
+
+    sf::RenderTexture render_target;
+    render_target.create(SCREEN_WIDTH, SCREEN_HEIGHT);
+    sf::Sprite render_target_sprite;
+    render_target_sprite.setTexture(render_target.getTexture());
+    render_target_sprite.setScale(1,-1);
+    render_target_sprite.setPosition(0,SCREEN_HEIGHT);
+
+
+    sf::RenderTexture render_target_2;
+    render_target_2.create(SCREEN_WIDTH, SCREEN_HEIGHT);
+    sf::Sprite render_target_2_sprite;
+    render_target_2_sprite.setTexture(render_target_2.getTexture());
+    render_target_2_sprite.setScale(1,-1);
+    render_target_2_sprite.setPosition(0,SCREEN_HEIGHT);
+
+
+    sf::Shader shader_monitor_distortion;
+	shader_monitor_distortion.loadFromFile("content/shaders/shader_monitor_distortion.frag", sf::Shader::Fragment);
+    shader_monitor_distortion.setUniform("hmap",distortion_map.getTexture());
+
+    sf::Shader shader_monitor_glitch;
+	shader_monitor_glitch.loadFromFile("content/shaders/shader_monitor_glitch.frag", sf::Shader::Fragment);
+    
+
 
     float *speed = new float[SYMBOLS_X_AXIS];
 
@@ -96,10 +359,10 @@ int main()
         vertex_1->position.y = y;
 
         vertex_2->position.x = x+GLYPH_WIDTH;
-        vertex_2->position.y = y+SYMBOL_WIDTH;
+        vertex_2->position.y = y+SYMBOL_HEIGHT;
 
         vertex_3->position.x = x;
-        vertex_3->position.y = y+SYMBOL_WIDTH;
+        vertex_3->position.y = y+SYMBOL_HEIGHT;
 
         int offset_x = 1 + rand() % (( 62 + 1 ) - 1)*GLYPH_WIDTH;
 
@@ -131,9 +394,11 @@ int main()
     fade[3].position = sf::Vector2f(0,SCREEN_HEIGHT);
     fade[0].color = fade[1].color = fade[2].color = fade[3].color = sf::Color(0,0,0,50);    
 
-    sf::RenderStates rs;
-    rs.texture = &glyph_map.getTexture();
 
+    float r0 = 0;
+                float r1 = 0;
+    
+float offset_x = 0;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -230,10 +495,56 @@ int main()
                 color_0->g = color_1->g = color_2->g = color_3->g = 255;
                 color_0->b = color_1->b = color_2->b = color_3->b = 255;
             }
+
            
-            window.draw(fade);
-            window.draw(*vertices,&glyph_map.getTexture());
+
+            render_target.draw(fade);
+            render_target.draw(*vertices,&glyph_map.getTexture());
+
+
+
+            render_target_2.clear(sf::Color::Black);
+            render_target_2.draw(render_target_sprite,&shader_monitor_distortion);
+
+
+
+            if(r0 <= 10)
+            {
+                r0 = 1080;
+                r1 = 1 + rand() % (( 10 + 1 ) - 1);  
+                offset_x = 0.01f;    
+            }
+            else
+            {
+                if(1 + rand() % (( 100 + 1 ) - 1) < 50)
+                {
+                    offset_x = 0;
+                }
+                else
+                {
+                    offset_x = (float)(1 + rand() % (( 100 + 1 ) - 1)-50)/20000.0f;
+                }
+
+                float n = 1 + rand() % (( 25 + 1 ) - 1)/10.0;
+                r0 -= n;
+                
+            }
+
+            std::cout << (r0/1080.0f) << std::endl;
+
+shader_monitor_glitch.setUniform("offset_x",offset_x);
+            shader_monitor_glitch.setUniform("glitch_y0",(r0/1080.0f));
+                shader_monitor_glitch.setUniform("glitch_y1",((r0+r1)/1080.0f));   
+
+
+window.clear(sf::Color::Black);
+                window.draw(render_target_2_sprite,&shader_monitor_glitch);
+
+            //distortion_map_sprite.setColor(sf::Color(255,255,255,30));
+           // window.draw(distortion_map_sprite);
 			window.display();
+            
+            t += dt;
 
 			accumulator -= dt;
 		};
