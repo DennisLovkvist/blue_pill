@@ -10,8 +10,8 @@
 #include <random>
 #include <string>
 
-#define SCREEN_WIDTH 1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH 1366
+#define SCREEN_HEIGHT 768
 #define SYMBOL_WIDTH 16
 #define SYMBOL_HEIGHT 16
 #define GLYPH_WIDTH 12
@@ -232,7 +232,7 @@ void GenerateBlocks(sf::VertexArray* vertices,int inner_x, int inner_y,int radiu
 }
 int main()
 {
-   sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH,SCREEN_HEIGHT), "SFML works!", sf::Style::Close);
+   sf::RenderWindow window(sf::VideoMode(SCREEN_WIDTH,SCREEN_HEIGHT), "SFML works!", sf::Style::Fullscreen);
 
 	sf::View view = window.getDefaultView();
 	sf::Clock clock;
@@ -405,6 +405,10 @@ float offset_x = 0;
 		while (window.pollEvent(event))
 		{
 			if (event.type == sf::Event::Closed)
+			{
+				window.close();
+			}
+			if (sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
 			{
 				window.close();
 			}

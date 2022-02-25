@@ -34,7 +34,7 @@ void main()
 { 
     
     vec4 col = vec4(0,0,0,1); 
-    float width = 1920/2;  
+    float width = 1366/2;  
 
     vec4 pixel = texture2D(hmap, gl_TexCoord[0].xy);
 

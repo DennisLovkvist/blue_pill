@@ -1,0 +1,1 @@
+g++  -DSFML_STATIC -IC:\SFML\include -LC:\SFML\lib src/*.cpp -lsfml-graphics-s -lfreetype -lsfml-window-s -lgdi32 -lopengl32 -lsfml-system-s -lwinmm -o blue_pill.exe
