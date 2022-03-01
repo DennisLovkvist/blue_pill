@@ -532,16 +532,13 @@ float offset_x = 0;
 
             std::cout << (r0/1080.0f) << std::endl;
 
-shader_monitor_glitch.setUniform("offset_x",offset_x);
+            shader_monitor_glitch.setUniform("offset_x",offset_x);
             shader_monitor_glitch.setUniform("glitch_y0",(r0/1080.0f));
-                shader_monitor_glitch.setUniform("glitch_y1",((r0+r1)/1080.0f));   
+            shader_monitor_glitch.setUniform("glitch_y1",((r0+r1)/1080.0f));   
 
 
-window.clear(sf::Color::Black);
-                window.draw(render_target_2_sprite,&shader_monitor_glitch);
-
-            //distortion_map_sprite.setColor(sf::Color(255,255,255,30));
-           // window.draw(distortion_map_sprite);
+            window.clear(sf::Color::Black);
+            window.draw(render_target_2_sprite,&shader_monitor_glitch);
 			window.display();
             
             t += dt;
