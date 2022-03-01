@@ -1,6 +1,6 @@
  /*
  * Author: Dennis Lövkvist
- * Version: 1.0 (2022-02-19)
+ * Version: 1.0 (2022-03-01)
  */
 
 #include <SFML/Graphics.hpp>
@@ -394,11 +394,11 @@ int main()
     fade[3].position = sf::Vector2f(0,SCREEN_HEIGHT);
     fade[0].color = fade[1].color = fade[2].color = fade[3].color = sf::Color(0,0,0,50);    
 
+    //Shader params
+    float distortion_begin = 0;
+    float distortion_end = 0;    
+    float offset_x = 0;
 
-    float r0 = 0;
-                float r1 = 0;
-    
-float offset_x = 0;
 	while (window.isOpen())
 	{
 		sf::Event event;
@@ -508,10 +508,10 @@ float offset_x = 0;
 
 
 
-            if(r0 <= 10)
+            if(distortion_begin <= 10)
             {
-                r0 = 1080;
-                r1 = 1 + rand() % (( 10 + 1 ) - 1);  
+                distortion_begin = 1080;
+                distortion_end = 1 + rand() % (( 10 + 1 ) - 1);  
                 offset_x = 0.01f;    
             }
             else
@@ -526,15 +526,13 @@ float offset_x = 0;
                 }
 
                 float n = 1 + rand() % (( 25 + 1 ) - 1)/10.0;
-                r0 -= n;
+                distortion_begin -= n;
                 
             }
 
-            std::cout << (r0/1080.0f) << std::endl;
-
             shader_monitor_glitch.setUniform("offset_x",offset_x);
-            shader_monitor_glitch.setUniform("glitch_y0",(r0/1080.0f));
-            shader_monitor_glitch.setUniform("glitch_y1",((r0+r1)/1080.0f));   
+            shader_monitor_glitch.setUniform("glitch_y0",(distortion_begin/1080.0f));
+            shader_monitor_glitch.setUniform("glitch_y1",((distortion_begin+distortion_end)/1080.0f));   
 
 
             window.clear(sf::Color::Black);
