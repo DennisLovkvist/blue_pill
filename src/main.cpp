@@ -12,9 +12,9 @@
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
-#define SYMBOL_WIDTH 16
-#define SYMBOL_HEIGHT 16
-#define GLYPH_WIDTH 12
+#define SYMBOL_WIDTH 32
+#define SYMBOL_HEIGHT 32
+#define GLYPH_WIDTH 24
 
 #define PI 3.141
 
@@ -31,7 +31,7 @@ void BuildGlyphMap(sf::RenderTexture *glyph_map)
         std::cin.ignore(); 
     }
     
-    glyph_map->create(1332, 18);
+    glyph_map->create(1332, GLYPH_WIDTH*0.8);
 
     sf::Text characters;
     characters.setLetterSpacing(10);
@@ -43,13 +43,13 @@ void BuildGlyphMap(sf::RenderTexture *glyph_map)
     for (size_t i = 0; i < 63; i++)
     {
         characters.setString(c[i]);
-        characters.setCharacterSize(16); 
+        characters.setCharacterSize(GLYPH_WIDTH); 
         characters.setFillColor(sf::Color::White);
         int width = characters.getLocalBounds().width;
 
         //OPENGL flips coords during rendering
         characters.setScale(1.0, -1.0);
-        characters.setOrigin(0,18);
+        characters.setOrigin(0,GLYPH_WIDTH);
 
         int x = (GLYPH_WIDTH/2)-(width/2);
 
@@ -359,10 +359,10 @@ int main()
         vertex_1->position.y = y;
 
         vertex_2->position.x = x+GLYPH_WIDTH;
-        vertex_2->position.y = y+SYMBOL_HEIGHT;
+        vertex_2->position.y = y+16;
 
         vertex_3->position.x = x;
-        vertex_3->position.y = y+SYMBOL_HEIGHT;
+        vertex_3->position.y = y+16;
 
         int offset_x = 1 + rand() % (( 62 + 1 ) - 1)*GLYPH_WIDTH;
 
@@ -373,17 +373,17 @@ int main()
         vertex_1->texCoords.y = 0;
 
         vertex_2->texCoords.x = offset_x+GLYPH_WIDTH,SYMBOL_HEIGHT;
-        vertex_2->texCoords.y = SYMBOL_HEIGHT;
+        vertex_2->texCoords.y = 16;
 
         vertex_3->texCoords.x = offset_x;
-        vertex_3->texCoords.y = SYMBOL_HEIGHT;          
+        vertex_3->texCoords.y = 16;          
     }
 
     for (size_t i = 0; i < SYMBOLS_X_AXIS; i++)
     {
         focus_index[i] = 1 + rand() % (( SYMBOLS_Y_AXIS + 1 ) - 1);
 
-        speed[i] = (float)(15 + rand() % (( 20 + 15 ) - 1))/10.0f;
+        speed[i] = (float)(15 + rand() % (( 20 + 15 ) - 1))/15.0f;
         
     }  
     
